@@ -4,6 +4,11 @@ import sys
 import base64, io
 
 pygame.init()
+pygame.mixer.init()
+
+pygame.mixer.music.load("assets/sounds/The love Cycle.mp3")
+pygame.mixer.music.set_volume(0.5) # 볼륨
+pygame.mixer.music.play(-1)
 
 screen = pygame.display.set_mode((840, 600))
 
@@ -71,7 +76,7 @@ LEVELS = {
 level = 1
 
 # --- 사운드 자리 ---
-# eat_sound = pygame.mixer.Sound("eat.wav")
+eat_sound = pygame.mixer.Sound("assets/Sound Effects/write.mp3")
 # die_sound = pygame.mixer.Sound("die.wav")
 
 
@@ -210,6 +215,7 @@ def main():
             if head == food:
                 score += 10
                 food = new_food(snake)
+                eat_sound.play()
 
                 if score % 50 == 0 and level < 3:
                     level = min(level + 1, 3)
