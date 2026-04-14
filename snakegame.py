@@ -7,7 +7,7 @@ pygame.init()
 pygame.mixer.init()
 
 pygame.mixer.music.load("assets/sounds/The love Cycle.mp3")
-pygame.mixer.music.set_volume(0.5) # 볼륨
+pygame.mixer.music.set_volume(0.9) # 볼륨
 pygame.mixer.music.play(-1)
 
 screen = pygame.display.set_mode((840, 600))
@@ -50,12 +50,18 @@ WIDTH, HEIGHT = 840, 600
 CELL = 60
 FPS = 10
 
+bg_img = pygame.image.load("assets/paper_bg.png").convert()
+bg_img = pygame.transform.scale(bg_img, (CELL, CELL))
+
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (50, 200, 50)
 DARK = (30, 150, 30)
 RED = (220, 50, 50)
 GRAY = (40, 40, 40)
+PINK = (255, 210, 220)
+BOOST_PINK = (255, 80, 140)
+BOOST_GLOW = (255, 170, 210)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snake")
@@ -91,10 +97,14 @@ def new_food(snake):
 
 
 def draw_grid():
-    for x in range(0, WIDTH, CELL):
-        pygame.draw.line(screen, (20, 20, 20), (x, 0), (x, HEIGHT))
     for y in range(0, HEIGHT, CELL):
-        pygame.draw.line(screen, (20, 20, 20), (0, y), (WIDTH, y))
+        for x in range(0, WIDTH, CELL):
+            screen.blit(bg_img, (x, y))
+
+    for x in range(0, WIDTH + 1, CELL):
+        pygame.draw.line(screen, (255, 140, 180), (x, 0), (x, HEIGHT), 1)
+    for y in range(0, HEIGHT + 1, CELL):
+        pygame.draw.line(screen, (255, 140, 180), (0, y), (WIDTH, y), 1)
 
 
 def draw_snake(snake):
@@ -126,7 +136,7 @@ def draw_hud(score, level):
 
 
 def game_over_screen(score):
-    screen.fill(GRAY)
+    screen.fill(PINK)
     screen.blit(font_big.render("GAME OVER", True, RED), (220, 220))
     screen.blit(font.render(f"Score: {score}", True, WHITE), (350, 310))
     screen.blit(font.render("R: Restart   Q: Quit", True, WHITE), (270, 360))
@@ -145,7 +155,7 @@ def game_over_screen(score):
 
 
 def level_select_screen():
-    screen.fill(GRAY)
+    screen.fill(PINK)
     screen.blit(font_big.render("SNAKE", True, GREEN), (310, 160))
     for lv, info in LEVELS.items():
         screen.blit(
@@ -225,7 +235,7 @@ def main():
 
             last_move_time = current_time
 
-        screen.fill(GRAY)
+        screen.fill(PINK)
         draw_grid()
         draw_food(food)
         draw_snake(snake)
