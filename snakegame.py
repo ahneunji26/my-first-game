@@ -193,16 +193,15 @@ def make_snake_burst_particles(snake):
     return particles
 
 
-def draw_grid():
+def draw_grid(ox=0, oy=0):
     for y in range(0, HEIGHT, CELL):
         for x in range(0, WIDTH, CELL):
-            screen.blit(bg_img, (x, y))
+            screen.blit(bg_img, (x + ox, y + oy))
 
     for x in range(0, WIDTH + 1, CELL):
-        pygame.draw.line(screen, (255, 140, 180), (x, 0), (x, HEIGHT), 1)
+        pygame.draw.line(screen, (255, 140, 180), (x + ox, oy), (x + ox, HEIGHT + oy), 1)
     for y in range(0, HEIGHT + 1, CELL):
-        pygame.draw.line(screen, (255, 140, 180), (0, y), (WIDTH, y), 1)
-
+        pygame.draw.line(screen, (255, 140, 180), (ox, y + oy), (WIDTH + ox, y + oy), 1)
 
 def draw_snake(snake, ox=0, oy=0):
     for i, seg in enumerate(snake):
@@ -234,6 +233,9 @@ def play_death_sequence(snake, score):
     start_time = pygame.time.get_ticks()
     duration = 2000  # 전체 연출 시간
     paper_start = 1000  # 이 시점부터 찢어진 편지지 등장
+    
+    boom_played = False
+    tear_played = False
     
 
     while True:
@@ -269,8 +271,8 @@ def play_death_sequence(snake, score):
         offset_y = random.randint(-shake, shake) if shake > 0 else 0
 
         screen.fill(PINK)
-        draw_grid()
-        draw_food(food) if 'food' in globals() else None
+        draw_grid(offset_x, offset_y)
+        draw_food(food, offset_x, offset_y) if 'food' in globals() else None
 
         # 조각 업데이트 및 그리기
         alive_particles = []
@@ -295,6 +297,9 @@ def play_death_sequence(snake, score):
 
         # 찢어진 편지지 등장
         if elapsed >= paper_start:
+            if not tear_played:
+                tear_sound.play()
+                tear_played = True
             paper_t = (elapsed - paper_start) / (duration - paper_start)
             paper_t = max(0.0, min(1.0, paper_t))
 
