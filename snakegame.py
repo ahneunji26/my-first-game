@@ -16,6 +16,8 @@ head_img = pygame.image.load("assets/love_letter_character/love_letter_head.png"
 body_img = pygame.image.load("assets/love_letter_character/love_letter_body.png").convert_alpha()
 tail_img = pygame.image.load("assets/love_letter_character/love_letter_tail.png").convert_alpha()
 
+tear_loveletter_img_raw = pygame.image.load("assets/tear_loveletter.png").convert_alpha()
+
 WIDTH, HEIGHT = 840, 600
 CELL = 60
 FPS = 10
@@ -88,6 +90,7 @@ level = 1
 # --- 사운드 자리 ---
 eat_sound = pygame.mixer.Sound("assets/Sound Effects/write.mp3")
 # die_sound = pygame.mixer.Sound("die.wav")
+tear_sound = pygame.mixer.Sound("assets/Sound Effects/tear_paper.mp3")
 
 
 def new_food(snake):
@@ -154,6 +157,41 @@ def draw_boost_effect(start_time, duration=1500):
 
     return True
 
+def make_snake_burst_particles(snake):
+    particles = []
+
+    for i, seg in enumerate(snake):
+        if i == 0:
+            img = head_img
+        elif i == len(snake) - 1:
+            img = tail_img
+        else:
+            img = body_img
+
+        # 현재 셀 중앙 기준
+        base_x = seg[0] + CELL // 2
+        base_y = seg[1] + CELL // 2
+
+        # 조각 여러 개 생성
+        for _ in range(3):
+            vx = random.uniform(-8, 8)
+            vy = random.uniform(-10, 4)
+            rot_speed = random.uniform(-12, 12)
+
+            particles.append({
+                "img": img.copy(),
+                "x": float(base_x),
+                "y": float(base_y),
+                "vx": vx,
+                "vy": vy,
+                "rot": random.uniform(0, 360),
+                "rot_speed": rot_speed,
+                "alpha": 255,
+                "size": random.randint(CELL - 18, CELL + 6),
+            })
+
+    return particles
+
 
 def draw_grid():
     for y in range(0, HEIGHT, CELL):
@@ -166,31 +204,128 @@ def draw_grid():
         pygame.draw.line(screen, (255, 140, 180), (0, y), (WIDTH, y), 1)
 
 
-def draw_snake(snake):
+def draw_snake(snake, ox=0, oy=0):
     for i, seg in enumerate(snake):
         x, y = seg # seg = (x, y)
         
         # 머리
         if i == 0:
-            screen.blit(head_img, (x, y))
+            screen.blit(head_img, (x + ox, y + oy))
         
         # 꼬리
         elif i == len(snake) - 1:
-            screen.blit(tail_img, (x, y))
+            screen.blit(tail_img, (x + ox, y + oy))
         
         # 몸통
         else:
-            screen.blit(body_img, (x, y))
+            screen.blit(body_img, (x + ox, y + oy))
 
-def draw_food(food):
+def draw_food(food, ox=0, oy=0):
     frame_index = (pygame.time.get_ticks() // 150) % len(food_frames)
     frame = food_frames[frame_index]
-    screen.blit(frame, food)
+    screen.blit(frame, (food[0] + ox, food[1] + oy))
 
 def draw_hud(score, level):
     screen.blit(font.render(f"Score: {score}", True, WHITE), (10, 10))
     screen.blit(font.render(f"Level: {LEVELS[level]['label']}", True, WHITE), (10, 40))
 
+def play_death_sequence(snake, score):
+    particles = make_snake_burst_particles(snake)
+    start_time = pygame.time.get_ticks()
+    duration = 2000  # 전체 연출 시간
+    paper_start = 1000  # 이 시점부터 찢어진 편지지 등장
+    
+
+    while True:
+        now = pygame.time.get_ticks()
+        elapsed = now - start_time
+        t = elapsed / duration
+        
+        shake = 0
+        if elapsed < 300:  # 터지는 순간 0.3초
+            shake = 15
+        
+        # 💥 터지는 순간 화면 진동
+        shake = 0
+        if elapsed < 300:  # 0.3초 동안만
+            shake = int(15 * (1 - elapsed / 300))
+
+        offset_x = random.randint(-shake, shake)
+        offset_y = random.randint(-shake, shake)
+
+        if elapsed >= duration:
+            break
+
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        # 초반 흔들림
+        shake = 0
+        if elapsed < 500:
+            shake = max(1, int(10 * (1 - elapsed / 500)))
+        offset_x = random.randint(-shake, shake) if shake > 0 else 0
+        offset_y = random.randint(-shake, shake) if shake > 0 else 0
+
+        screen.fill(PINK)
+        draw_grid()
+        draw_food(food) if 'food' in globals() else None
+
+        # 조각 업데이트 및 그리기
+        alive_particles = []
+        for p in particles:
+            p["x"] += p["vx"]
+            p["y"] += p["vy"]
+            p["vy"] += 0.45          # 아래로 떨어짐
+            p["vx"] *= 0.98
+            p["rot"] += p["rot_speed"]
+            p["alpha"] = max(0, p["alpha"] - 5)
+
+            if p["alpha"] > 0:
+                img = pygame.transform.scale(p["img"], (p["size"], p["size"]))
+                img = pygame.transform.rotate(img, p["rot"])
+                img.set_alpha(p["alpha"])
+
+                rect = img.get_rect(center=(int(p["x"]) + offset_x, int(p["y"]) + offset_y))
+                screen.blit(img, rect)
+                alive_particles.append(p)
+
+        particles = alive_particles
+
+        # 찢어진 편지지 등장
+        if elapsed >= paper_start:
+            paper_t = (elapsed - paper_start) / (duration - paper_start)
+            paper_t = max(0.0, min(1.0, paper_t))
+
+            # 확대 없이 고정 크기
+            size = int(min(WIDTH, HEIGHT) * 0.9)
+
+            paper_img = pygame.transform.scale(tear_loveletter_img_raw, (size, size))
+
+            # 편지지 전용 진동
+            paper_shake = max(1, int(18 * (1 - paper_t))) if paper_t < 0.1 else 0
+            paper_offset_x = random.randint(-paper_shake, paper_shake)
+            paper_offset_y = random.randint(-paper_shake, paper_shake)
+
+            paper_rect = paper_img.get_rect(
+                center=(
+                    WIDTH // 2 + paper_offset_x,
+                    HEIGHT // 2 + paper_offset_y
+                )
+            )
+            screen.blit(paper_img, paper_rect)
+
+        # GAME OVER 글자를 같이 띄우고 싶으면
+        if elapsed > 900:
+            game_over_text = font_big.render("GAME OVER", True, RED)
+            text_rect = game_over_text.get_rect(center=(WIDTH // 2, 90 + offset_y))
+            screen.blit(game_over_text, text_rect)
+
+        pygame.display.flip()
+        clock.tick(60)
+
+    return game_over_screen(score)
 
 def game_over_screen(score):
     screen.fill(PINK)
@@ -283,7 +418,7 @@ def main():
                 or head[1] >= HEIGHT
                 or head in snake
             ):
-                if game_over_screen(score):
+                if play_death_sequence(snake, score):
                     main()
                 return
 
