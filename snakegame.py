@@ -2,6 +2,8 @@ import pygame
 import random
 import sys
 import base64, io
+import ctypes
+ctypes.windll.user32.SetProcessDPIAware()
 
 pygame.init()
 pygame.mixer.init()
