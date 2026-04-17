@@ -1,20 +1,29 @@
 import pygame
 import random
-import sys
 import os
 import base64, io
 import ctypes
-ctypes.windll.user32.SetProcessDPIAware()
+import sys
 
-BASE_DIR = os.path.dirname(__file__)
+if sys.platform.startswith("win"):
+    try:
+        ctypes.windll.user32.SetProcessDPIAware()
+    except Exception:
+        pass
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 pygame.init()
-pygame.mixer.init()
 
-bgm_path = os.path.join(BASE_DIR, "assets", "sounds", "The love Cycle.mp3")
-pygame.mixer.music.load(bgm_path)
-pygame.mixer.music.set_volume(0.9) # 볼륨
-pygame.mixer.music.play(-1)
+audio_enabled = True
+try:
+    pygame.mixer.init()
+    bgm_path = os.path.join(BASE_DIR, "assets", "sounds", "The love Cycle.mp3")
+    pygame.mixer.music.load(bgm_path)
+    pygame.mixer.music.set_volume(0.9)
+    pygame.mixer.music.play(-1)
+except Exception:
+    audio_enabled = False
 
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
