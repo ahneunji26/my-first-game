@@ -24,6 +24,8 @@ tail_img = pygame.image.load("assets/love_letter_character/love_letter_tail.png"
 
 tear_loveletter_img_raw = pygame.image.load("assets/tear_loveletter.png").convert_alpha()
 
+title_img = pygame.image.load("assets/title.png").convert_alpha()
+
 CELL = 60
 COLS = 14
 ROWS = 10
@@ -62,18 +64,18 @@ food_frames = [
 ]
 
 def get_korean_font(size):
-    candidates = ["malgungothic", "applegothic", "nanumgothic", "notosanscjk"]
-    for name in candidates:
-        font = pygame.font.SysFont(name, size)
-        if font.get_ascent() > 0:
-            return font
-    return pygame.font.SysFont(None, size)
+    try:
+        return pygame.font.Font("assets/font/KERISKEDU_Line.ttf", size)  # 🔥 여기!
+    except:
+        return pygame.font.SysFont(None, size)
 
 bg_img = pygame.image.load("assets/paper_bg.png").convert()
 bg_img = pygame.transform.scale(bg_img, (CELL, CELL))
 
 boost_img_raw = pygame.image.load("assets/pink/candy.png").convert_alpha()
 boost_img = pygame.transform.scale(boost_img_raw, (CELL, CELL))
+
+title_img = pygame.transform.scale(title_img, (700, 700))
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -88,7 +90,7 @@ BOOST_GLOW = (255, 170, 210)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snake")
 clock = pygame.time.Clock()
-font = get_korean_font(36)
+font = get_korean_font(50)
 font_big = get_korean_font(72)
 
 head_img = pygame.transform.scale(head_img, (CELL, CELL))
@@ -431,17 +433,16 @@ def start_screen():
     screen.fill(PINK)
 
     # 제목
-    title = font_big.render("SNAKE", True, GREEN)
-    title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 120))
-    screen.blit(title, title_rect)
+    title_rect = title_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 120))
+    screen.blit(title_img, title_rect)
 
     # 안내 문구
     text = font.render("Press SPACE to Start", True, WHITE)
-    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 20))
+    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 100))
     screen.blit(text, text_rect)
     
     quit_text = font.render("Press Q to Quit", True, WHITE)
-    quit_rect = quit_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 80))
+    quit_rect = quit_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 190))
     screen.blit(quit_text, quit_rect)
 
 
