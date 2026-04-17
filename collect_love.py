@@ -1,14 +1,18 @@
 import pygame
 import random
 import sys
+import os
 import base64, io
 import ctypes
 ctypes.windll.user32.SetProcessDPIAware()
 
+BASE_DIR = os.path.dirname(__file__)
+
 pygame.init()
 pygame.mixer.init()
 
-pygame.mixer.music.load("assets/sounds/The love Cycle.mp3")
+bgm_path = os.path.join(BASE_DIR, "assets", "sounds", "The love Cycle.mp3")
+pygame.mixer.music.load(bgm_path)
 pygame.mixer.music.set_volume(0.9) # 볼륨
 pygame.mixer.music.play(-1)
 
@@ -17,20 +21,29 @@ screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h
 
-head_img = pygame.image.load("assets/love_letter_character/love_letter_head.png").convert_alpha()
-head_boost_img = pygame.image.load("assets/love_letter_character/love_letter_head_boost.png").convert_alpha()
-body_img = pygame.image.load("assets/love_letter_character/love_letter_body.png").convert_alpha()
-tail_img = pygame.image.load("assets/love_letter_character/love_letter_tail.png").convert_alpha()
+head_path = os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_head.png")
+head_img = pygame.image.load(head_path).convert_alpha()
 
-tear_loveletter_img_raw = pygame.image.load("assets/tear_loveletter.png").convert_alpha()
+head_boost_path = os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_head_boost.png")
+head_boost_img = pygame.image.load(head_boost_path).convert_alpha()
 
-title_img = pygame.image.load("assets/title.png").convert_alpha()
+body_path = os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_body.png")
+body_img = pygame.image.load(body_path).convert_alpha()
+
+tail_path = os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_tail.png")
+tail_img = pygame.image.load(tail_path).convert_alpha()
+
+tear_path = os.path.join(BASE_DIR, "assets", "tear_loveletter.png")
+tear_loveletter_img_raw = pygame.image.load(tear_path).convert_alpha()
+
+title_path = os.path.join(BASE_DIR, "assets", "title.png")
+title_img = pygame.image.load(title_path).convert_alpha()
 
 CELL = 60
 COLS = 14
 ROWS = 10
 FPS = 10
-gmae_started = False
+game_started = False
 
 CELL = min(WIDTH // COLS, (HEIGHT - 60) // ROWS)
 
