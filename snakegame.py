@@ -18,6 +18,7 @@ info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h
 
 head_img = pygame.image.load("assets/love_letter_character/love_letter_head.png").convert_alpha()
+head_boost_img = pygame.image.load("assets/love_letter_character/love_letter_head_boost.png").convert_alpha()
 body_img = pygame.image.load("assets/love_letter_character/love_letter_body.png").convert_alpha()
 tail_img = pygame.image.load("assets/love_letter_character/love_letter_tail.png").convert_alpha()
 
@@ -91,6 +92,7 @@ font = get_korean_font(36)
 font_big = get_korean_font(72)
 
 head_img = pygame.transform.scale(head_img, (CELL, CELL))
+head_boost_img = pygame.transform.scale(head_boost_img, (CELL, CELL))
 body_img = pygame.transform.scale(body_img, (CELL, CELL))
 tail_img = pygame.transform.scale(tail_img, (CELL, CELL))
 
@@ -219,7 +221,7 @@ def draw_grid(ox=0, oy=0):
             (OFFSET_X + ox, OFFSET_Y + y + oy),
             (OFFSET_X + GAME_WIDTH + ox, OFFSET_Y + y + oy), 1)
         
-def draw_snake(snake, ox=0, oy=0):
+def draw_snake(snake, boost_on, ox=0, oy=0):
     for i, seg in enumerate(snake):
         x, y = seg
 
@@ -227,7 +229,8 @@ def draw_snake(snake, ox=0, oy=0):
         draw_y = OFFSET_Y + y + oy
 
         if i == 0:
-            screen.blit(head_img, (draw_x, draw_y))
+            head = head_boost_img if boost_on else head_img
+            screen.blit(head, (draw_x, draw_y))
         elif i == len(snake) - 1:
             screen.blit(tail_img, (draw_x, draw_y))
         else:
@@ -394,9 +397,6 @@ def ending_screen(score):
                 if e.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
-                if e.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
 
 def game_over_screen(score):
     screen.fill(PINK)
@@ -426,10 +426,6 @@ def game_over_screen(score):
                 if e.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
-            if e.key == pygame.K_ESCAPE:
-                pygame.quit()
-                sys.exit()
-
 
 def start_screen():
     screen.fill(PINK)
@@ -443,6 +439,11 @@ def start_screen():
     text = font.render("Press SPACE to Start", True, WHITE)
     text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 20))
     screen.blit(text, text_rect)
+    
+    quit_text = font.render("Press Q to Quit", True, WHITE)
+    quit_rect = quit_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 80))
+    screen.blit(quit_text, quit_rect)
+
 
     pygame.display.flip()
 
@@ -455,7 +456,7 @@ def start_screen():
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_SPACE:
                     return
-                if e.key == pygame.K_ESCAPE:
+                if e.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
 
@@ -488,7 +489,7 @@ def main():
 
             if e.type == pygame.KEYDOWN:
                 
-                if e.key == pygame.K_ESCAPE:   # 🔥 여기 추가
+                if e.key == pygame.K_q:   # 🔥 여기 추가
                     pygame.quit()
                     sys.exit()
                 
@@ -506,6 +507,8 @@ def main():
                     return
 
         current_time = pygame.time.get_ticks()
+        
+        boost_on = current_time < boost_active_until
         
         if boost_item is None and current_time - last_boost_spawn >= boost_interval:
             boost_item = new_boost_item(snake, food)
@@ -528,7 +531,6 @@ def main():
 
             snake.insert(0, head)
 
-            boost_on = current_time < boost_active_until
 
             # 펜 아이템 먹었을 때
             if head == food:
@@ -573,7 +575,7 @@ def main():
         if boost_item is not None:
             draw_boost_item(boost_item)
 
-        draw_snake(snake)
+        draw_snake(snake, boost_on)
         draw_hud(score)
 
         if boost_effect_start is not None:
