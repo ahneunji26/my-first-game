@@ -249,6 +249,10 @@ def draw_food(food, ox=0, oy=0):
 def draw_hud(score):
     screen.blit(font.render(f"Score: {score}", True, WHITE), (10, 10))
 
+    hint_text = font.render("Press E to View Ending", True, (255, 160, 190))
+    hint_rect = hint_text.get_rect(center=(WIDTH // 2, 70))  # y값만 조금 아래로
+    screen.blit(hint_text, hint_rect)
+
 def play_death_sequence(snake, score):
     particles = make_snake_burst_particles(snake)
     start_time = pygame.time.get_ticks()
