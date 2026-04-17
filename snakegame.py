@@ -27,6 +27,7 @@ CELL = 60
 COLS = 14
 ROWS = 10
 FPS = 10
+gmae_started = False
 
 CELL = min(WIDTH // COLS, (HEIGHT - 60) // ROWS)
 
@@ -92,13 +93,6 @@ font_big = get_korean_font(72)
 head_img = pygame.transform.scale(head_img, (CELL, CELL))
 body_img = pygame.transform.scale(body_img, (CELL, CELL))
 tail_img = pygame.transform.scale(tail_img, (CELL, CELL))
-
-# --- 레벨 설정 ---
-LEVELS = {
-    1: {"speed": 8, "label": "Easy"},
-    2: {"speed": 12, "label": "Normal"},
-    3: {"speed": 18, "label": "Hard"},
-}
 
 # --- 사운드 자리 ---
 eat_sound = pygame.mixer.Sound("assets/Sound Effects/write.mp3")
@@ -247,9 +241,8 @@ def draw_food(food, ox=0, oy=0):
         (OFFSET_X + food[0] + ox,
          OFFSET_Y + food[1] + oy))
 
-def draw_hud(score, level):
+def draw_hud(score):
     screen.blit(font.render(f"Score: {score}", True, WHITE), (10, 10))
-    screen.blit(font.render(f"Level: {LEVELS[level]['label']}", True, WHITE), (10, 40))
 
 def play_death_sequence(snake, score):
     particles = make_snake_burst_particles(snake)
@@ -355,12 +348,69 @@ def play_death_sequence(snake, score):
 
     return game_over_screen(score)
 
+def get_ending_type(score):
+    if score < 50:
+        return "bad"
+    elif score < 120:
+        return "normal"
+    else:
+        return "good"
+    
+def ending_screen(score):
+    ending = get_ending_type(score)
+
+    screen.fill(PINK)
+
+    if ending == "bad":
+        title_str = "BAD END"
+    elif ending == "normal":
+        title_str = "NORMAL END"
+    else:
+        title_str = "GOOD END"
+
+    title = font_big.render(title_str, True, RED)
+    title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 80))
+    screen.blit(title, title_rect)
+
+    score_text = font.render(f"Score: {score}", True, WHITE)
+    score_rect = score_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 10))
+    screen.blit(score_text, score_rect)
+
+    guide_text = font.render("R: Restart   Q: Quit", True, WHITE)
+    guide_rect = guide_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 70))
+    screen.blit(guide_text, guide_rect)
+
+    pygame.display.flip()
+
+    while True:
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_r:
+                    return True
+                if e.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
+
 def game_over_screen(score):
     screen.fill(PINK)
-    screen.blit(font_big.render("GAME OVER", True, RED), (220, 220))
-    screen.blit(font.render(f"Score: {score}", True, WHITE), (350, 310))
-    screen.blit(font.render("R: Restart   Q: Quit", True, WHITE), (270, 360))
+
+    title = font_big.render("GAME OVER", True, RED)
+    title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 80))
+    screen.blit(title, title_rect)
+
+    score_text = font.render(f"Score: {score}", True, WHITE)
+    score_rect = score_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 10))
+    screen.blit(score_text, score_rect)
+
+    guide_text = font.render("R: Restart   Q: Quit", True, WHITE)
+    guide_rect = guide_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 70))
+    screen.blit(guide_text, guide_rect)
+
     pygame.display.flip()
+
     while True:
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
@@ -374,28 +424,33 @@ def game_over_screen(score):
                     sys.exit()
 
 
-def level_select_screen():
+def start_screen():
     screen.fill(PINK)
-    screen.blit(font_big.render("SNAKE", True, GREEN), (310, 160))
-    for lv, info in LEVELS.items():
-        screen.blit(
-            font.render(f"{lv}: {info['label']}", True, WHITE), (340, 250 + lv * 40)
-        )
+
+    # 제목
+    title = font_big.render("SNAKE", True, GREEN)
+    title_rect = title.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 120))
+    screen.blit(title, title_rect)
+
+    # 안내 문구
+    text = font.render("Press SPACE to Start", True, WHITE)
+    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 20))
+    screen.blit(text, text_rect)
+
     pygame.display.flip()
+
     while True:
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
             if e.type == pygame.KEYDOWN:
-                if e.key in (pygame.K_1, pygame.K_2, pygame.K_3):
-                    return int(e.unicode)
+                if e.key == pygame.K_SPACE:
+                    return
 
 
 def main():
-    global level
-    level = level_select_screen()
-
     snake = [((GAME_WIDTH // CELL) // 2 * CELL, (GAME_HEIGHT // CELL) // 2 * CELL)]
     direction = (CELL, 0)
     next_direction = direction
@@ -407,6 +462,8 @@ def main():
     boost_effect_start = None
     grow_pending = 0
     score = 0
+    pens_eaten = 0
+    move_delay = 120
 
     move_delay = 120
     last_move_time = pygame.time.get_ticks()
@@ -428,6 +485,10 @@ def main():
                     next_direction = (-CELL, 0)
                 elif e.key == pygame.K_RIGHT and direction != (-CELL, 0):
                     next_direction = (CELL, 0)
+                elif e.key == pygame.K_e:
+                    if ending_screen(score):
+                        main()
+                    return
 
         current_time = pygame.time.get_ticks()
         
@@ -458,8 +519,13 @@ def main():
             if head == food:
                 gain = 20 if boost_on else 10
                 score += gain
+                pens_eaten += 1
                 food = new_food(snake)
                 eat_sound.play()
+                
+                # 펜 10개 먹을 때마다 속도 증가
+                if pens_eaten % 10 == 0:
+                    move_delay = max(50, move_delay - 10)
 
                 # 기본적으로 이번 턴에 pop을 안 하므로 +1 성장
                 # 부스트면 총 +2 성장이어야 하니 다음 턴용 1칸 추가
@@ -493,7 +559,7 @@ def main():
             draw_boost_item(boost_item)
 
         draw_snake(snake)
-        draw_hud(score, level)
+        draw_hud(score)
 
         if boost_effect_start is not None:
             still_alive = draw_boost_effect(boost_effect_start)
@@ -502,5 +568,5 @@ def main():
 
         pygame.display.flip()
 
-
+start_screen()
 main()
