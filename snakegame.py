@@ -387,10 +387,14 @@ def ending_screen(score):
             if e.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_r:
                     return True
                 if e.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
+                if e.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
 
@@ -422,6 +426,9 @@ def game_over_screen(score):
                 if e.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
+            if e.key == pygame.K_ESCAPE:
+                pygame.quit()
+                sys.exit()
 
 
 def start_screen():
@@ -448,6 +455,9 @@ def start_screen():
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_SPACE:
                     return
+                if e.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
 
 
 def main():
@@ -477,6 +487,11 @@ def main():
                 sys.exit()
 
             if e.type == pygame.KEYDOWN:
+                
+                if e.key == pygame.K_ESCAPE:   # 🔥 여기 추가
+                    pygame.quit()
+                    sys.exit()
+                
                 if e.key == pygame.K_UP and direction != (0, CELL):
                     next_direction = (0, -CELL)
                 elif e.key == pygame.K_DOWN and direction != (0, -CELL):
