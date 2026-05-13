@@ -5,11 +5,21 @@ import base64, io
 import ctypes
 import sys
 
+def resource_path(relative_path):
+    """개발 중과 빌드 후 모두 동작하는 경로 반환"""
+    if hasattr(sys, '_MEIPASS'):
+        base = sys._MEIPASS
+    else:
+        base = os.path.dirname(__file__)
+    return os.path.join(base, relative_path)
+
 if sys.platform.startswith("win"):
     try:
         ctypes.windll.user32.SetProcessDPIAware()
     except Exception:
         pass
+
+print(resource_path("assets/player.png"))
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -18,7 +28,9 @@ pygame.init()
 audio_enabled = True
 try:
     pygame.mixer.init()
-    bgm_path = os.path.join(BASE_DIR, "assets", "sounds", "The love Cycle.mp3")
+    bgm_path = resource_path(
+        os.path.join(BASE_DIR, "assets", "sounds", "The love Cycle.mp3")
+    )
     pygame.mixer.music.load(bgm_path)
     pygame.mixer.music.set_volume(0.9)
     pygame.mixer.music.play(-1)
@@ -30,22 +42,22 @@ screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h
 
-head_path = os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_head.png")
+head_path = resource_path(os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_head.png"))
 head_img = pygame.image.load(head_path).convert_alpha()
 
-head_boost_path = os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_head_boost.png")
+head_boost_path = resource_path(os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_head_boost.png"))
 head_boost_img = pygame.image.load(head_boost_path).convert_alpha()
 
-body_path = os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_body.png")
+body_path = resource_path(os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_body.png"))
 body_img = pygame.image.load(body_path).convert_alpha()
 
-tail_path = os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_tail.png")
+tail_path = resource_path(os.path.join(BASE_DIR, "assets", "love_letter_character", "love_letter_tail.png"))
 tail_img = pygame.image.load(tail_path).convert_alpha()
 
-tear_path = os.path.join(BASE_DIR, "assets", "tear_loveletter.png")
+tear_path = resource_path(os.path.join(BASE_DIR, "assets", "tear_loveletter.png"))
 tear_loveletter_img_raw = pygame.image.load(tear_path).convert_alpha()
 
-title_path = os.path.join(BASE_DIR, "assets", "title.png")
+title_path = resource_path(os.path.join(BASE_DIR, "assets", "title.png"))
 title_img = pygame.image.load(title_path).convert_alpha()
 
 CELL = 60
@@ -87,14 +99,18 @@ food_frames = [
 
 def get_korean_font(size):
     try:
-        return pygame.font.Font("assets/font/KERISKEDU_Line.ttf", size)  # 🔥 여기!
+        return pygame.font.Font(resource_path(os.path.join("assets/font/KERISKEDU_Line.ttf", size)), )  # 🔥 여기!
     except:
         return pygame.font.SysFont(None, size)
 
-bg_img = pygame.image.load("assets/paper_bg.png").convert()
+bg_img = pygame.image.load(
+    resource_path(os.path.join("assets/paper_bg.png"))
+    ).convert()
 bg_img = pygame.transform.scale(bg_img, (CELL, CELL))
 
-boost_img_raw = pygame.image.load("assets/pink/candy.png").convert_alpha()
+boost_img_raw = pygame.image.load(
+    resource_path(os.path.join("assets/pink/candy.png"))
+    ).convert_alpha()
 boost_img = pygame.transform.scale(boost_img_raw, (CELL, CELL))
 
 title_img = pygame.transform.scale(title_img, (700, 700))
@@ -121,10 +137,14 @@ body_img = pygame.transform.scale(body_img, (CELL, CELL))
 tail_img = pygame.transform.scale(tail_img, (CELL, CELL))
 
 # --- 사운드 자리 ---
-eat_sound = pygame.mixer.Sound("assets/Sound Effects/write.mp3")
+eat_sound = pygame.mixer.Sound(
+    resource_path(os.path.join("assets/Sound Effects/write.mp3"))
+    )
 eat_sound.set_volume(0.3)
 # die_sound = pygame.mixer.Sound("die.wav")
-tear_sound = pygame.mixer.Sound("assets/Sound Effects/tear_paper.mp3")
+tear_sound = pygame.mixer.Sound(
+    resource_path(os.path.join("assets/Sound Effects/tear_paper.mp3"))
+    )
 
 
 def new_food(snake):
