@@ -95,10 +95,74 @@ clock = pygame.time.Clock()
 font = get_korean_font(28)
 font_big = get_korean_font(58)
 
+def scale_keep_ratio(img, max_w, max_h):
+
+    w, h = img.get_size()
+
+    scale = min(max_w / w, max_h / h)
+
+    new_w = int(w * scale)
+    new_h = int(h * scale)
+
+    return pygame.transform.smoothscale(
+        img,
+        (new_w, new_h)
+    )
+
 # png
 bullet_img = pygame.image.load(
     os.path.join(BASE_DIR, "assets", "bullet.png")
 ).convert_alpha()
+
+story_img1 = pygame.image.load(
+    os.path.join(BASE_DIR, "assets", "story_img1.png")
+).convert_alpha()
+
+story_img1 = scale_keep_ratio(
+    story_img1,
+    WIDTH,
+    HEIGHT 
+)
+
+story_img2 = pygame.image.load(
+    os.path.join(BASE_DIR, "assets", "story_img2.png")
+).convert_alpha()
+
+story_img2 = scale_keep_ratio(
+    story_img2,
+    WIDTH,
+    HEIGHT
+)
+
+story_img3 = pygame.image.load(
+    os.path.join(BASE_DIR, "assets", "story_img3.png")
+).convert_alpha()
+
+story_img3 = scale_keep_ratio(
+    story_img3,
+    WIDTH,
+    HEIGHT
+)
+
+story_img4 = pygame.image.load(
+    os.path.join(BASE_DIR, "assets", "story_img4.png")
+).convert_alpha()
+
+story_img4 = scale_keep_ratio(
+    story_img4,
+    WIDTH,
+    HEIGHT
+)
+
+story_img5 = pygame.image.load(
+    os.path.join(BASE_DIR, "assets", "story_img5.png")
+).convert_alpha()
+
+story_img5 = scale_keep_ratio(
+    story_img5,
+    WIDTH,
+    HEIGHT
+)
 
 bullet_img = pygame.transform.scale(bullet_img, (100, 100))
 
@@ -148,7 +212,7 @@ add_pattern(42200, [1700], 4)
 
 add_pattern(48900, [230, 230, 400], 8)
 
-add_pattern(55600, [500, 300, 290, 100, 520], 8)
+add_pattern(55600, [490, 220, 300, 100, 580], 8)
 
 add_pattern(69400, [110, 110, 110, 110], 15)
 
@@ -173,22 +237,240 @@ def opening_screen():
     
     play_bgm(OPENING_BGM)
     page = 0
-    lines = [
-        "공중 전투 중, 주인공은 실수로 총을 떨어뜨렸다.",
-        "무기도 없이 날아오는 적의 총알.",
-        "놀란 주인공은 그대로 발로 총알을 차버렸다.",
-        "그런데... 총알은 오히려 적에게 되돌아갔다."
+
+    story_pages = [
+        (story_img1, "21xx년"),
+        (story_img1, "어떠한 세력이 모든 AI를 인간의 적으로 돌리고"),
+        (story_img1, "인간의 개체수를 감소 시키고 있다."),
+        (story_img2, "오늘도 저런 조무래기들을 상대해야한다"),
+        (story_img3, "...!"),
+        (story_img4, ""),
+        (story_img5, "")
     ]
 
+    typing_start = pygame.time.get_ticks()
+    typing_speed = 55
+
     while True:
+        
+        if page >= len(story_pages):
+            tutorial_cutscene()
+            return
+    
         screen.fill(BLACK)
 
-        if page < len(lines):
-            draw_text_center(lines[page], 220, WHITE)
-            draw_text_center("SPACE : 다음     S : 스킵", 360, YELLOW)
+        if page < len(story_pages):
+
+            img, text = story_pages[page]
+
+            img_x = WIDTH // 2 - img.get_width() // 2
+            img_y = HEIGHT // 2 - img.get_height() // 2
+
+            screen.blit(img, (img_x, img_y))
+
+            now = pygame.time.get_ticks()
+
+            visible_count = (now - typing_start) // typing_speed
+
+            current_text = text[:visible_count]
+
+            # 자막 배경
+            #pygame.draw.rect(
+                #screen,
+                #(0, 0, 0),
+                #(50, HEIGHT - 110, WIDTH - 100, 90)
+            #)
+
+            # 자막 출력
+            draw_text_center(
+                current_text,
+                HEIGHT - 70,
+                WHITE
+            )
+
+            # 작은 안내문
+            small_font = pygame.font.SysFont(None, 24)
+
+            hint = small_font.render(
+                "SPACE : next   S : skip",
+                True,
+                YELLOW
+            )
+
+            screen.blit(
+                hint,
+                (WIDTH - hint.get_width() - 20, HEIGHT - 35)
+            )
+
+            pygame.display.flip()
+
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_SPACE:
+
+                    if page < len(story_pages):
+                        visible_count = (pygame.time.get_ticks() - typing_start) // typing_speed
+
+                        if visible_count < len(story_pages[page][1]):
+                            typing_start = pygame.time.get_ticks() - len(story_pages[page][1]) * typing_speed
+                        else:
+                            page += 1
+                            typing_start = pygame.time.get_ticks()
+
+                    else:
+                        return
+                    
+                if e.key == pygame.K_s:
+                    return
+
+                if e.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                    
+def tutorial_cutscene():
+    player = pygame.Rect(90, HEIGHT // 2 - 40, PLAYER_W, PLAYER_H)
+    enemy = pygame.Rect(WIDTH - 180, HEIGHT // 2 - 35, ENEMY_W, ENEMY_H)
+    stars = [
+        [random.randint(0, WIDTH), random.randint(0, HEIGHT), random.randint(1, 2)]
+        for _ in range(80)
+    ]
+
+    idle_index = 0
+    enemy_index = 0
+
+    bullet = pygame.Rect(enemy.x - 40, enemy.centery, BULLET_W, BULLET_H)
+
+    is_kicking = False
+    kick_anim_index = 0
+    auto_kicked = False
+    
+    bullet_reflected = False
+    enemy_hit = False
+    enemy_fall_speed = 0
+    enemy_shake = 0
+    enemy_hit_index = 0
+    
+    subtitle = "꺄아아아악!!!"
+
+    after_hit_mode = False
+
+    after_hit_texts = [
+        "...어?",
+        "총알이 되돌아갔어...?",
+        "리듬에 맞춰 차면 싸울 수 있을지도 몰라!"
+    ]
+
+    after_hit_index = 0
+    
+    while True:
+
+        # 별/배경이 있다면 네 실제 플레이 화면의 배경 코드로 교체
+        screen.fill(GRAY)
+
+        for s in stars:
+            s[0] -= s[2]
+            if s[0] < 0:
+                s[0] = WIDTH
+                s[1] = random.randint(0, HEIGHT)
+            pygame.draw.circle(screen, WHITE, (s[0], s[1]), s[2])
+
+        # 총알 천천히 왼쪽 이동
+        if not bullet_reflected:
+            bullet.x -= 3
         else:
-            draw_text_center("리듬에 맞춰 SPACE로 총알을 차서 반사하세요.", 220, WHITE)
-            draw_text_center("SPACE : 게임 시작     S : 스킵", 360, GREEN)
+            bullet.x += 8
+            
+        if bullet_reflected and not enemy_hit and bullet.colliderect(enemy):
+            enemy_hit = True
+            enemy_shake = 20
+            enemy_fall_speed = 5
+            enemy_hit_index = 0
+            
+            after_hit_mode = True
+            after_hit_index = 0
+            subtitle = after_hit_texts[0]
+        
+        # 총알이 플레이어 근처에 오면 자동 킥
+        if not auto_kicked and bullet.x <= player.right + 30:
+            is_kicking = True
+            kick_anim_index = 0
+            auto_kicked = True
+            bullet_reflected = True
+
+        # 플레이어 애니메이션
+        if is_kicking:
+
+            kick_anim_index += 0.25
+
+            if kick_anim_index >= len(kick_frames):
+                kick_anim_index = len(kick_frames) - 1
+
+            player_frame = kick_frames[int(kick_anim_index)]
+
+        else:
+
+            idle_index += 0.08
+
+            if idle_index >= len(idle_frames):
+                idle_index = 0
+
+            player_frame = idle_frames[int(idle_index)]
+
+        player_img = pygame.transform.scale(player_frame, (140, 140))
+
+        screen.blit(
+            player_img,
+            (player.x - 35, player.y - 35)
+        )
+        
+        # 적 애니메이션
+        enemy_index += 0.08
+        if enemy_index >= len(enemy_frames):
+            enemy_index = 0
+
+        if enemy_hit:
+            enemy_hit_index += 0.2
+            if enemy_hit_index >= len(enemy_hit_frames):
+                enemy_hit_index = len(enemy_hit_frames) - 1
+
+            enemy_frame = enemy_hit_frames[int(enemy_hit_index)]
+
+            if enemy_shake > 0:
+                enemy.x += random.randint(-5, 5)
+                enemy.y += random.randint(-3, 3)
+                enemy_shake -= 1
+
+            enemy.y += enemy_fall_speed
+            enemy_fall_speed += 0.2
+
+        else:
+            enemy_index += 0.08
+            if enemy_index >= len(enemy_frames):
+                enemy_index = 0
+
+            enemy_frame = enemy_frames[int(enemy_index)]
+
+        enemy_img = pygame.transform.scale(enemy_frame, (120, 120))
+        screen.blit(enemy_img, (enemy.x - 25, enemy.y - 25))
+
+        # 총알 이미지
+        screen.blit(
+            bullet_img,
+            (
+                bullet.centerx - bullet_img.get_width() // 2,
+                bullet.centery - bullet_img.get_height() // 2
+            )
+        )
+
+        draw_text_center(subtitle, player.y - 50, WHITE)
+
+        small_font = pygame.font.SysFont(None, 24)
+        hint = small_font.render("SPACE : continue   S : skip", True, YELLOW)
+        screen.blit(hint, (WIDTH - hint.get_width() - 20, HEIGHT - 35))
 
         pygame.display.flip()
 
@@ -196,17 +478,28 @@ def opening_screen():
             if e.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
             if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_d or e.key == pygame.K_k:
-                    page += 1
-                    if page > len(lines):
-                        return
-                    
+                if e.key == pygame.K_SPACE:
+
+                    # 적 맞은 이후에만 SPACE 허용
+                    if after_hit_mode:
+
+                        after_hit_index += 1
+
+                        if after_hit_index >= len(after_hit_texts):
+                            return
+
+                        subtitle = after_hit_texts[after_hit_index]
+
                 if e.key == pygame.K_s:
-                        return
+                    return
+
                 if e.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+
+        clock.tick(60)
 
 def game_over_screen(score):
     while True:
