@@ -250,6 +250,9 @@ def opening_screen():
 
     typing_start = pygame.time.get_ticks()
     typing_speed = 55
+    
+    prev_img = None
+    fade_start = pygame.time.get_ticks()
 
     while True:
         
@@ -263,10 +266,32 @@ def opening_screen():
 
             img, text = story_pages[page]
 
-            img_x = WIDTH // 2 - img.get_width() // 2
-            img_y = HEIGHT // 2 - img.get_height() // 2
+            if img is not None:
 
-            screen.blit(img, (img_x, img_y))
+                img_x = WIDTH // 2 - img.get_width() // 2
+                img_y = HEIGHT // 2 - img.get_height() // 2
+
+                fade_time = 1000
+
+                if img != prev_img:
+                    fade_start = pygame.time.get_ticks()
+                    prev_img = img
+
+                elapsed = pygame.time.get_ticks() - fade_start
+
+                alpha = min(
+                    255,
+                    int(255 * elapsed / fade_time)
+                )
+
+                fade_img = img.copy()
+
+                fade_img.set_alpha(alpha)
+
+                screen.blit(
+                    fade_img,
+                    (img_x, img_y)
+                )
 
             now = pygame.time.get_ticks()
 
@@ -466,7 +491,67 @@ def tutorial_cutscene():
             )
         )
 
-        draw_text_center(subtitle, player.y - 50, WHITE)
+        # 말풍선 위치
+        bubble_x = player.x + 20
+        bubble_y = player.y - 90
+        bubble_font = pygame.font.SysFont("malgungothic", 20)
+
+        text_img = bubble_font.render(subtitle, True, BLACK)
+
+        padding_x = 30
+        padding_y = 20
+
+        bubble_w = text_img.get_width() + padding_x
+        bubble_h = text_img.get_height() + padding_y
+
+        # 말풍선 본체
+        pygame.draw.rect(
+            screen,
+            WHITE,
+            (bubble_x, bubble_y, bubble_w, bubble_h),
+            border_radius=12
+        )
+
+        # 말풍선 테두리
+        pygame.draw.rect(
+            screen,
+            BLACK,
+            (bubble_x, bubble_y, bubble_w, bubble_h),
+            2,
+            border_radius=12
+        )
+
+        # 말풍선 꼬리
+        pygame.draw.polygon(
+            screen,
+            WHITE,
+            [
+                (bubble_x + 35, bubble_y + bubble_h),
+                (bubble_x + 55, bubble_y + bubble_h),
+                (bubble_x + 40, bubble_y + bubble_h + 20)
+            ]
+        )
+
+        pygame.draw.polygon(
+            screen,
+            BLACK,
+            [
+                (bubble_x + 35, bubble_y + bubble_h),
+                (bubble_x + 55, bubble_y + bubble_h),
+                (bubble_x + 40, bubble_y + bubble_h + 20)
+            ],
+            2
+        )
+
+        # 말풍선 안 자막
+        bubble_font = pygame.font.SysFont("malgungothic", 23)
+        screen.blit(
+            text_img,
+            (
+                bubble_x + bubble_w // 2 - text_img.get_width() // 2,
+                bubble_y + bubble_h // 2 - text_img.get_height() // 2
+            )
+        )
 
         small_font = pygame.font.SysFont(None, 24)
         hint = small_font.render("SPACE : continue   S : skip", True, YELLOW)
@@ -516,6 +601,33 @@ def game_over_screen(score):
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_r:
                     main(False)
+                if e.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
+                    
+def pause_screen():
+    pygame.mixer.music.pause()
+    pause_start = pygame.time.get_ticks()
+
+    while True:
+        screen.fill(BLACK)
+
+        draw_text_center("PAUSED", 180, WHITE, font_big)
+        draw_text_center("SPACE : Continue", 280, GREEN)
+        draw_text_center("Q : Quit", 340, RED)
+
+        pygame.display.flip()
+
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_SPACE or e.key == pygame.K_ESCAPE:
+                    pygame.mixer.music.unpause()
+                    return pygame.time.get_ticks() - pause_start
+
                 if e.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
@@ -682,12 +794,12 @@ def main(show_opening=True):
                 pygame.quit()
                 sys.exit()
 
-            if e.type == pygame.KEYDOWN:
+            if e.type == pygame.KEYDOWN:      
                 if e.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
+                    paused_time = pause_screen()
+                    start_ticks += paused_time
 
-                if e.key == pygame.K_d or e.key == pygame.K_k:
+                if e.key == pygame.K_f or e.key == pygame.K_j:
                     kick_timer = 8
                     
                     is_kicking = True
