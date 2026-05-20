@@ -110,10 +110,13 @@ def scale_keep_ratio(img, max_w, max_h):
     )
 
 # png
-bullet_img = pygame.image.load(
-    os.path.join(BASE_DIR, "assets", "bullet.png")
-).convert_alpha()
+bullet_p_img = pygame.image.load(os.path.join(BASE_DIR, "assets", "bullet_p.png")).convert_alpha()
+bullet_g_img = pygame.image.load(os.path.join(BASE_DIR, "assets", "bullet_g.png")).convert_alpha()
+bullet_d_img = pygame.image.load(os.path.join(BASE_DIR, "assets", "bullet_d.png")).convert_alpha()
 
+bullet_p_img = pygame.transform.scale(bullet_p_img, (32, 32))
+bullet_g_img = pygame.transform.scale(bullet_g_img, (32, 32))
+bullet_d_img = pygame.transform.scale(bullet_d_img, (32, 32))
 story_img1 = pygame.image.load(
     os.path.join(BASE_DIR, "assets", "story_img1.png")
 ).convert_alpha()
@@ -164,8 +167,6 @@ story_img5 = scale_keep_ratio(
     HEIGHT
 )
 
-bullet_img = pygame.transform.scale(bullet_img, (100, 100))
-
 def load_base64_frames(sheet_b64, frame_w, frame_h, frame_count):
     sheet_bytes = base64.b64decode(sheet_b64)
     sheet = pygame.image.load(io.BytesIO(sheet_bytes)).convert_alpha()
@@ -187,8 +188,8 @@ boss_frames = load_base64_frames(BOSS_SHEET_B64, 64, 64, 5)
 # 리듬 설정
 # -----------------------------
 OFFSET = 0          # 노래/공격 타이밍 보정값(ms)
-PERFECT_RANGE = 60
-GOOD_RANGE = 110
+PERFECT_RANGE = 130
+GOOD_RANGE = 220
 
 # 음악 기준 공격 시간표(ms)
 NOTE_TIMES = []
@@ -667,24 +668,32 @@ def draw_enemy(enemy_rect):
     pygame.draw.circle(screen, BLACK, enemy_rect.center, 18)
     pygame.draw_text if False else None
 
-def draw_bullet(rect):
+def draw_bullet(b):
+    if b["color"] == "purple":
+        img = bullet_p_img
+    elif b["color"] == "green":
+        img = bullet_g_img
+    else:
+        img = bullet_d_img
 
-    screen.blit(
-        bullet_img,
-        (rect.x - 24, rect.y - 24)
-    )
-   
+    rotated = pygame.transform.rotate(img, b["angle"])
+    rotated_rect = rotated.get_rect(center=b["rect"].center)
+    screen.blit(rotated, rotated_rect)
+    
 def draw_reflected_bullet(rb):
     angle = -math.degrees(math.atan2(rb["vy"], rb["vx"]))
 
-    img = bullet_img
+    if rb["color"] == "purple":
+        img = bullet_p_img
+    elif rb["color"] == "green":
+        img = bullet_g_img
+    else:
+        img = bullet_d_img
 
-    # 반사 총알은 오른쪽으로 날아가니까 좌우반전
     if rb["vx"] > 0:
         img = pygame.transform.flip(img, True, False)
 
     rotated_img = pygame.transform.rotate(img, angle)
-
     rect = rotated_img.get_rect(center=rb["rect"].center)
 
     screen.blit(rotated_img, rect)
@@ -783,6 +792,25 @@ def main(show_opening=True):
     while True:
         dt = clock.tick(FPS)
         now = pygame.time.get_ticks()
+        
+        keys = pygame.key.get_pressed()
+        
+        move_speed = 6
+
+        if keys[pygame.K_a]:
+            player.x -= move_speed
+
+        if keys[pygame.K_d]:
+            player.x += move_speed
+
+        if keys[pygame.K_w]:
+            player.y -= move_speed
+
+        if keys[pygame.K_s]:
+            player.y += move_speed
+            
+            player.x = max(0, min(WIDTH - player.width, player.x))
+            player.y = max(0, min(HEIGHT - player.height, player.y))
 
         if not boss_started:
             game_time = now - start_ticks + OFFSET
@@ -799,9 +827,18 @@ def main(show_opening=True):
                     paused_time = pause_screen()
                     start_ticks += paused_time
 
-                if e.key == pygame.K_f or e.key == pygame.K_j:
+            if e.type == pygame.MOUSEBUTTONDOWN:
+
+                pressed_color = None
+
+                if e.button == 1:
+                    pressed_color = "purple"
+
+                elif e.button == 3:
+                    pressed_color = "green"
+
+                if pressed_color:
                     kick_timer = 8
-                    
                     is_kicking = True
                     kick_anim_index = 0
 
@@ -809,6 +846,9 @@ def main(show_opening=True):
                     closest_error = 99999
 
                     for b in bullets:
+                        if b["color"] != pressed_color:
+                            continue
+
                         error = abs(b["hit_time"] - game_time)
                         if error < closest_error:
                             closest = b
@@ -816,7 +856,7 @@ def main(show_opening=True):
 
                     if closest and closest_error <= GOOD_RANGE:
                         if closest_error <= PERFECT_RANGE:
-                            result_text = "PERFECT"
+                            result_text = ""
                             score += 100
                             combo += 1
                             
@@ -828,7 +868,7 @@ def main(show_opening=True):
                                 if lives > 10:
                                     lives = 10
                         else:
-                            result_text = "GOOD"
+                            result_text = ""
                             score += 50
                             combo += 1
 
@@ -842,14 +882,15 @@ def main(show_opening=True):
                                 BULLET_H
                             ),
                             "vx": random.randint(9, 13),
-                            "vy": random.choice([-4, -3, -2, 0, 2, 3, 3])
+                            "vy": random.choice([-4, -3, -2, 0, 2, 3, 3]),
+                            "color": closest["color"]
                         }
 
                         reflected_bullets.append(rb)
                         bullets.remove(closest)
 
                     else:
-                        result_text = "MISS"
+                        result_text = ""
                         result_timer = 30
                         combo = 0
 
@@ -868,12 +909,21 @@ def main(show_opening=True):
 
                 bullet_rect = pygame.Rect(start_x, y, BULLET_W, BULLET_H)
 
+                bullet_color = random.choice(["purple", "green"])
+
                 bullets.append({
                     "rect": bullet_rect,
                     "hit_time": hit_time,
                     "spawn_time": hit_time - travel_time,
                     "start_x": start_x,
-                    "target_x": JUDGE_LINE_X
+                    "target_x": JUDGE_LINE_X,
+                    "color": bullet_color,
+                    
+                    "vx": -5,
+                    "vy": 0,
+                    "angle": 0,
+                    "x": float(start_x),
+                    "y": float(y),
                 })
 
                 note_index += 1
@@ -896,18 +946,39 @@ def main(show_opening=True):
                 })
 
                 boss_note_index += 1
-
+                
         # 총알 이동
         for b in bullets:
-            remain = b["hit_time"] - game_time
-            progress = 1 - (remain / 1500)
-            progress = max(0, min(1, progress))
-            b["rect"].x = int(b["start_x"] + (b["target_x"] - b["start_x"]) * progress)
+            target_x = player.centerx - b["rect"].width // 2
+            target_y = player.centery - b["rect"].height // 2
 
-        # 판정선 지나간 총알 처리
+            remain_time = max(1, b["hit_time"] - game_time)
+            remain_frames = max(1, remain_time / (1000 / FPS))
+
+            move_x = (target_x - b["rect"].x) / remain_frames
+            move_y = (target_y - b["rect"].y) / remain_frames
+
+            if abs(move_x) < 2:
+                if move_x < 0:
+                    move_x = -2
+                else:
+                    move_x = 2
+
+            b["rect"].x += int(move_x)
+            b["rect"].y += int(move_y * 0.4)
+
+            b["angle"] = -math.degrees(math.atan2(move_y, move_x))
+
+       # 플레이어 실제 피격 판정 박스
+        player_hitbox = player.inflate(-60, -70)
+
+        # 디버그용 히트박스 표시
+        pygame.draw.rect(screen, (255, 0, 0), player_hitbox, 2)
+
+        # 총알 충돌 판정
         missed = []
         for b in bullets:
-            if game_time - b["hit_time"] > GOOD_RANGE:
+            if b["rect"].colliderect(player_hitbox):
                 missed.append(b)
 
         for b in missed:
@@ -915,7 +986,7 @@ def main(show_opening=True):
             lives -= 1
             player_shake = 12
             combo = 0
-            result_text = "HIT"
+            result_text = ""
             result_timer = 30
 
             if lives <= 0:
@@ -1022,7 +1093,7 @@ def main(show_opening=True):
 
             current_frame = idle_frames[int(player_anim_index)]
 
-        scaled_player = pygame.transform.scale(current_frame, (140, 140))
+        scaled_player = pygame.transform.scale(current_frame, (100, 100))
 
         shake_x = 0
         shake_y = 0
@@ -1041,7 +1112,7 @@ def main(show_opening=True):
         )
                 # 총알
         for b in bullets:
-            draw_bullet(b["rect"])
+            draw_bullet(b)
 
         for rb in reflected_bullets:
             draw_reflected_bullet(rb)
