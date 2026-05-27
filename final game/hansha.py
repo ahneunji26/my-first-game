@@ -45,11 +45,13 @@ LEVELS = [
 # shoot_sound    = pygame.mixer.Sound("shoot.wav")
 # explosion_sound= pygame.mixer.Sound("explosion.wav")
 # hit_sound      = pygame.mixer.Sound("hit.wav")
+reflect_sound = pygame.mixer.Sound("assets/sound/shoot.wav")
+reflect_sound.set_volume(0.6)
 
 PLAYER_W, PLAYER_H = 40, 40
 ENEMY_W,  ENEMY_H  = 36, 36
 BULLET_W, BULLET_H = 6,  14
-ENEMY_BULLET_SPEED = 3
+ENEMY_BULLET_SPEED = 4
 
 def draw_player(surf, rect):
     cx = rect.centerx
@@ -109,7 +111,7 @@ def spawn_first_wave():
             "vx": velocities[i][0],
             "vy": velocities[i][1],
             "stop_timer": 0,
-            "hp": 3,
+            "hp": 1,
             "shot_index": 0,
             "shot_times": shot_times,
             "spawn_delay": spawn_delay,
@@ -138,13 +140,11 @@ def update_second_wave_enemy(en, wave_timer, enemy_bullets):
         + math.sin(t * 0.022) * spread * direction
     )
     
-    # 아래로 더 강하게 내려감
-    en["rect"].centery = start_y + t * 1.45
+   # 좌우로 살짝 흔들리면서 아래로 내려감
+    en["rect"].centerx = base_x + math.sin(t * 0.035) * 35
 
-    # 후반에는 화면 아래로 급강하하며 빠짐
-    if t > 170:
-        en["rect"].centerx += direction * (t - 170) * 2.5
-        en["rect"].centery += (t - 170) * 2.4
+    # 화면 맨 아래로 빠져나감
+    en["rect"].centery = start_y + t * 1.2
 
     if en["shot_index"] < len(en["shot_times"]):
         shot_time = en["shot_times"][en["shot_index"]]
@@ -216,7 +216,7 @@ def spawn_second_wave():
                 "row": row,
                 "direction": direction,
                 "spawn_delay": spawn_delay,
-                "hp": 3,
+                "hp": 1,
                 "active": False,
                 "phase": "enter",
                 "timer": 0,
@@ -650,6 +650,7 @@ def main():
                         b["vy"] = dy / dist * speed
                         b["color"] = GREEN
                         b["type"] = "reflected"
+                        reflect_sound.play()
 
                     elif b["type"] == "normal" and invincible <= 0:
                         lives -= 1
