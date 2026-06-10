@@ -4,6 +4,15 @@ import sys
 import math
 import base64, io
 import pygame
+import os
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 # ── Base64 데이터 ──
 IDLE_SHEET_B64 = "iVBORw0KGgoAAAANSUhEUgAAAQAAAABACAYAAAD1Xam+AAAAAXNSR0IArs4c6QAABGVJREFUeJzt3b9v20YYxvFHRTx2MipKQOAlho0A9ZoC6SAX3j14yqAlQwGjW/8CO3uRrtq6eM6gPag1tP9AphjxYhSwpCBTgmZoEXawjznT+uWoR93x/X4AI7J1lPTw5b0iJUqRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAbBpV32GzleWT/j4ejip/LIB1lUy68qS/9+vvt8b8+/MPxeU6NwPrDZD8ceUPfqcu8KRJP4lrBHXaIKw3QPLHm7+SBuACf/Pgq5lj355/kmrWBKw3QPLHnT/onTRbWd7uD/T2/NPcye/srW9Lkk6+b9ViI6ABkj/m/IvNyiXsrW/ryaOHd16u3R9MPV5KhWuAWqD4bsyTRw/V/WNYwaMLj/zx5w/eAO7CPfv7l1NvApYboMgfff7gDeDlu9czr99b3y5+ysu47mlFHRvgXZC/+vz3Qt64zw83jd8s5jWOVLx893pm9knXuWXa/YEu9zuBH2FY5I87fyUNoC6TeRlWG6BD/jjzV7YH8KXa/YG038lTfkW4bhvzXZE/3vxRvQiI2+ryYtiXIn/Y/DQAwDAaAGAYDQAwjAYAGEYDAAwL2gDGw1Ej9RM5gDpjDyAg6w2Q/PHnr6QBuJVwcXo2d+zF6VkxbpHxiNt4OIriNjBZ8DMBx8NRwz+R4eL0TP+M/5IkrTXv3xjr/n417vP4tesPRaR4NuB4OGpov5O3+4OioS2S378u5fzNVva/3EaqTSD2+lf2nYD+J/v8JjDNWvO+Nna3it/9XanUJgL5s+UmwPMfpQRzOzHXv9IvBZ328d7yrr4fvOxyv5PchkD+eCdAFWKuf/BDgGYry0fHzyRJ2X5H7pnADzkrsM8dDqTEen7n8jq7iryfMy8yAdyysb+oVhZ7/YM2gOLYv3sgnbwo/r6xu1UUfZHwbqzbFUyF9fxKYAKElEL9g+1KufCjN68kSdnmzo3r/+4eSROOA8s2drdudf0UdgGt51d5HZy8UHZ8VDyTLzMBUsifSv2DNgAXXt4K+PjLoSTpffeZG7fQ7aVQdB/505gAoaRS/+CvAZQL73x9crUBfJyz/PWKir7g01jO708Ax02AD92fpAUmwOXzq39TmPSTxF7/oA3AhXfFa7ay/NvH3y207Pnjp5Kk94lu/CK/lMAECCmF+gdrAMt0bBc+1a4v8kuJTIBQUql/pSt3xn+M6I9JfsOfhvxZ/uDP3+aOq0sDLIux/itZwTfeGjo+krssSY3Dw5U9rqpYzR/jBFgFq/UvNFtZnn8YFz/+7xa+AJL8WZ73enne6+X+5bzXyyXZyB9J/aP/WnDUVPdAkjTqHijb3CneMWgeHyX7wZ8U8X0AgGE0AMAwGgBg2MoawLQTRKywnt+6WOq/kgZQ97d55rGeXxFNgFWIqf4cAqByMU0A62gAgGHRNADLu4Qiv3mrqv9Kd8XcWU/lbw62sotoOb//eXm38Y/evFK2uWMivyKpv4kVjTjFMAEAAAAAAAAs+A+P1IuvjEECZgAAAABJRU5ErkJggg=="
@@ -91,16 +100,16 @@ for i in range(3):
 
 right_stand_img = right_frames[-1]
 
-dialogue_img = pygame.image.load("assets/player.png").convert_alpha()
+dialogue_img = pygame.image.load(resource_path("assets/player.png")).convert_alpha()
 dialogue_img = pygame.transform.scale(dialogue_img, (220, 220))
 
-boss1_img = pygame.image.load("assets/boss1.png").convert_alpha()
+boss1_img = pygame.image.load(resource_path("assets/boss1.png")).convert_alpha()
 boss1_dialogue_img = pygame.transform.scale(boss1_img, (220, 220))
 
-boss1_battle_img = pygame.image.load("assets/boss1(1).png").convert_alpha()
+boss1_battle_img = pygame.image.load(resource_path("assets/boss1(1).png")).convert_alpha()
 boss1_battle_img = pygame.transform.scale(boss1_battle_img, (80, 80))
 
-enemy_img = pygame.image.load("assets/enemy.png").convert_alpha()
+enemy_img = pygame.image.load(resource_path("assets/enemy.png")).convert_alpha()
 enemy_img = pygame.transform.scale(enemy_img, (70, 70))
 
 boss_attack_bytes = base64.b64decode(BOSS_ATTACK_SHEET_B64)
@@ -132,7 +141,7 @@ enemy_attack_frames = [
 ]
 
 red_bullet_img = pygame.image.load(
-    "assets/bullet1.png"
+    resource_path("assets/bullet1.png")
 ).convert_alpha()
 
 
@@ -143,7 +152,7 @@ red_bullet_img = pygame.transform.scale(
 
 
 blue_bullet_img = pygame.image.load(
-    "assets/bullet2.png"
+    resource_path("assets/bullet2.png")
 ).convert_alpha()
 
 blue_bullet_img = pygame.transform.scale(
@@ -152,9 +161,8 @@ blue_bullet_img = pygame.transform.scale(
 )
 
 
-
 score_bullet_img = pygame.image.load(
-    "assets/score.png"
+    resource_path("assets/score.png")
 ).convert_alpha()
 
 score_bullet_img = pygame.transform.scale(
@@ -163,7 +171,7 @@ score_bullet_img = pygame.transform.scale(
 )
 
 reflect_bullet_img = pygame.image.load(
-    "assets/reflect.png"
+    resource_path("assets/reflect.png")
 ).convert_alpha()
 
 reflect_bullet_img = pygame.transform.scale(
@@ -172,7 +180,7 @@ reflect_bullet_img = pygame.transform.scale(
 )
 
 item_img = pygame.image.load(
-    "assets/item.png"
+    resource_path("assets/item.png")
 ).convert_alpha()
 
 item_img = pygame.transform.scale(
@@ -180,10 +188,14 @@ item_img = pygame.transform.scale(
     (28, 28)
 )
 
-ending_img = pygame.image.load("assets/ending.png").convert_alpha()
+ending_img = pygame.image.load(
+    resource_path("assets/ending.png")
+).convert_alpha()
 ending_img = pygame.transform.scale(ending_img, (WIDTH, HEIGHT))
 
-over_img = pygame.image.load("assets/over.png").convert_alpha()
+over_img = pygame.image.load(
+    resource_path("assets/over.png")
+).convert_alpha()
 over_img = pygame.transform.scale(over_img, (WIDTH, HEIGHT))
 
 # --- 레벨 설정 ---
@@ -197,28 +209,39 @@ LEVELS = [
 # shoot_sound    = pygame.mixer.Sound("shoot.wav")
 # explosion_sound= pygame.mixer.Sound("explosion.wav")
 # hit_sound      = pygame.mixer.Sound("hit.wav")
-reflect_sound = pygame.mixer.Sound("assets/sound effect/bullet.wav")
+reflect_sound = pygame.mixer.Sound(
+    resource_path("assets/sound effect/bullet.wav")
+)
 reflect_sound.set_volume(0.6)
-pygame.mixer.music.load("assets/music/stage1.wav")
+pygame.mixer.music.load(
+    resource_path("assets/music/stage1.wav")
+)
 pygame.mixer.music.set_volume(0.5)
-menu_move_sound = pygame.mixer.Sound("assets/sound effect/MENU move.wav")
-menu_select_sound = pygame.mixer.Sound("assets/sound effect/MENU Select.wav")
+menu_move_sound = pygame.mixer.Sound(
+    resource_path("assets/sound effect/MENU move.wav"))
+menu_select_sound = pygame.mixer.Sound(
+    resource_path("assets/sound effect/MENU Select.wav")
+)
 
 menu_move_sound.set_volume(0.5)
 menu_select_sound.set_volume(0.6)
 
-item_sound = pygame.mixer.Sound("assets/sound effect/item.wav")
+item_sound = pygame.mixer.Sound(
+    resource_path("assets/sound effect/item.wav")
+)
 item_sound.set_volume(0.6)
 
-enemy_shoot_sound = pygame.mixer.Sound("assets/sound effect/shoot.wav")
+enemy_shoot_sound = pygame.mixer.Sound(
+    resource_path("assets/sound effect/shoot.wav")
+)
 enemy_shoot_sound.set_volume(0.5)
 
 gameover_sound = pygame.mixer.Sound(
-    "assets/music/8bit/gameover.mp3"
+    resource_path("assets/music/8bit/gameover.mp3")
 )
 
 gameclear_sound = pygame.mixer.Sound(
-    "assets/music/8bit/gameclear.mp3"
+    resource_path("assets/music/8bit/gameclear.mp3")
 )
 
 bgm_volume = 0.5
@@ -600,8 +623,8 @@ def draw_stars(stars):
 def draw_hud(score, lives, item_count, level_cfg):
     box_w = 230
     box_h = 120
-    box_x = WIDTH - box_w - 20
-    box_y = 20
+    box_x = WIDTH - box_w
+    box_y = 40
 
     pygame.draw.rect(screen, (5, 5, 20), (box_x, box_y, box_w, box_h))
     pygame.draw.rect(screen, WHITE, (box_x, box_y, box_w, box_h), 2)
@@ -678,7 +701,7 @@ def game_over_screen(score):
                     selected = 1 - selected
                     menu_move_sound.play()
 
-                if e.key == pygame.K_RETURN:
+                if e.key == pygame.K_SPACE:
                     menu_select_sound.play()
 
                     if selected == 0:
@@ -728,7 +751,7 @@ def confirm_exit_screen():
                 if e.key in [pygame.K_LEFT, pygame.K_RIGHT]:
                     selected = 1 - selected
 
-                if e.key == pygame.K_RETURN:
+                if e.key == pygame.K_SPACE :
                     if selected == 0:
                         pygame.quit()
                         sys.exit()
@@ -775,7 +798,7 @@ def dialogue_screen(lines):
                 sys.exit()
 
             if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_z or e.key == pygame.K_RETURN:
+                if e.key == pygame.K_z or e.key == pygame.K_SPACE:
                     if char_index < len(lines[line_index]):
                         char_index = len(lines[line_index])
                     else:
@@ -836,7 +859,7 @@ def ending_screen():
                     selected = 1 - selected
                     menu_move_sound.play()
 
-                if e.key == pygame.K_RETURN:
+                if e.key == pygame.K_SPACE:
                     menu_select_sound.play()
 
                     if selected == 0:
@@ -933,7 +956,7 @@ def pause_screen():
                 if e.key == pygame.K_ESCAPE:
                     return "continue"
 
-                if e.key == pygame.K_RETURN:
+                if e.key == pygame.K_SPACE:
                     menu_select_sound.play()
 
                     if selected == 2:
@@ -1008,7 +1031,7 @@ def option_screen():
                         sfx_volume = min(1, sfx_volume + 0.1)
                         apply_sfx_volume()
 
-                if e.key == pygame.K_RETURN:
+                if e.key == pygame.K_SPACE:
                     if selected == 2:
                         return
 
@@ -1056,7 +1079,7 @@ def title_screen():
                 if e.key == pygame.K_ESCAPE:
                     selected = 2
 
-                if e.key == pygame.K_RETURN:
+                if e.key == pygame.K_SPACE:
                     menu_select_sound.play()
                     if selected == 0:
                         pygame.mixer.music.play(-1)  # 무한 반복
@@ -1182,7 +1205,9 @@ def boss_homing_eight_pattern(boss_rect, enemy_bullets, player):
         })
             
 def main():
-    pygame.mixer.music.load("assets/music/stage1.wav")
+    pygame.mixer.music.load(
+        resource_path("assets/music/stage1.wav")
+    )
     pygame.mixer.music.play(-1)
     
     stage_text_frame = 0
@@ -1235,14 +1260,14 @@ def main():
     dialogue_active = False
     
     dialogue_lines = [
-        {"speaker": "left", "text": "별거없네"},
-        {"speaker": "left", "text": "꽤 유명해서 기대했는데 말이야."},
-        {"speaker": "left", "text": "설마, 이게 끝?"},
-        {"speaker": "right", "text": "그렇게 무시하면 섭하지"},
-        {"speaker": "right", "text": "조금 혼날 필요가 있어보이는데"},
+        {"speaker": "left", "text": "몰까 삶은..."},
+        {"speaker": "left", "text": "괴물들이 너무 만타"},
+        {"speaker": "left", "text": "더 업엇으면 조켄는대.."},
+        {"speaker": "right", "text": "입조심헤라ㅋ"},
+        {"speaker": "right", "text": "인생선배로서 조언해주갯다"},
         {"speaker": "left", "text": "흠"},
-        {"speaker": "left", "text": "역시 이렇게 쉬울리 없지"},
-        {"speaker": "right", "text": "거만하긴"},
+        {"speaker": "left", "text": "웬 쥐방울마난개..."},
+        {"speaker": "right", "text": "넹ㅇㄴㅕ석 혼쭐을내주갯다"},
     ]
     
     
@@ -1299,7 +1324,7 @@ def main():
                     boss_attack_frame = 0
                     boss_attack_timer = 0
                         
-                if dialogue_active and (e.key == pygame.K_z or e.key == pygame.K_RETURN):
+                if dialogue_active and (e.key == pygame.K_z or e.key == pygame.K_SPACE):
                     if dialogue_char_index < len(dialogue_lines[dialogue_line_index]["text"]):
                         dialogue_char_index = len(dialogue_lines[dialogue_line_index]["text"])
                     else:
@@ -1661,10 +1686,11 @@ def main():
                                 eb["color"] = WHITE
 
                         dialogue_lines = [
-                            {"speaker": "right", "text": "생각보다 강하네..."},
-                            {"speaker": "left", "text": "이 정도였어?"},
-                            {"speaker": "right", "text": "이번엔 내가 졌군."},
-                            {"speaker": "left", "text": "다음엔 조금 더 기대할게."}
+                            {"speaker": "right", "text": "인ㄴ권ㅊㅣ매 결사반ㄷㅔ..."},
+                            {"speaker": "left", "text": "모래 ㅡ.ㅡ"},
+                            {"speaker": "left", "text": "졋쓰면 잠이나 디비자라"},
+                            {"speaker": "right", "text": "ㄱ-"},
+                            {"speaker": "left", "text": "컷ㅋㅋ"}
                         ]
 
                         dialogue_line_index = 0
@@ -2062,16 +2088,18 @@ def main():
 
             screen.blit(left_img, (int(dialogue_img_x), HEIGHT - 370))
             
-            if dialogue_line_index >= 3 and not boss_intro_started:
+            if dialogue_line_index >= 3 and not boss_intro_started and not boss_defeated:
                 boss_intro_started = True
 
-                pygame.mixer.music.load("assets/music/stage1_boss(1).wav")
+                pygame.mixer.music.load(
+                    resource_path("assets/music/stage1_boss(1).wav")
+                )
                 pygame.mixer.music.play(-1)
 
                 boss_enemy = pygame.Rect(WIDTH // 2 - 60, -160, 120, 120)
 
             # 3번째 대사 이후에 보스 등장
-            if dialogue_line_index >= 3:
+            if dialogue_line_index >= 3 or boss_defeated:
                 screen.blit(right_img, (int(boss1_x), HEIGHT - 370))
 
             box = pygame.Surface((560, 90), pygame.SRCALPHA)
